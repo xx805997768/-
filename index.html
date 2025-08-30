@@ -1,0 +1,79 @@
+
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>📶 实时网速与代理状态</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      text-align: center;
+      margin-top: 50px;
+      background-color: #f0f8ff;
+    }
+    .card {
+      background: #fff;
+      padding: 20px;
+      margin: auto;
+      width: 80%;
+      max-width: 500px;
+      border-radius: 10px;
+      box-shadow: 0 0 10px rgba(0,0,0,0.1);
+    }
+    h1 { margin-bottom: 10px; }
+    p { font-size: 1.2em; margin: 10px 0; }
+    #speed { font-size: 2em; color: #0077cc; }
+  </style>
+</head>
+<body>
+  <div class="card">
+    <h1>📶 实时网速与代理状态</h1>
+    <p>当前网速：</p>
+    <div id="speed">获取中...</div>
+    <p>您的 IP：<span id="ip">获取中...</span></p>
+    <p>代理状态：<span id="proxy">推测中...</span></p>
+  </div>
+
+  <script>
+    function getInternetSpeed() {
+      const imageSizeBytes = 300000; // 约 300KB
+      const image = new Image();
+      const start = performance.now();
+      image.src = "https://img.alicdn.com/tfs/TB1eUe6XwHqK1RjSZFgXXa7JXXa-1920-1080.jpg?cache=" + Math.random();
+
+      image.onload = function () {
+        const end = performance.now();
+        const duration = (end - start) / 1000;
+        const bitsLoaded = imageSizeBytes * 8;
+        const speedMbps = (bitsLoaded / duration / 1024 / 1024).toFixed(2);
+        document.getElementById("speed").innerText = speedMbps + " Mbps";
+      };
+
+      image.onerror = function () {
+        document.getElementById("speed").innerText = "检测失败";
+      };
+    }
+
+    async function getIPInfo() {
+      try {
+        const res = await fetch("https://api.ipify.org?format=json");
+        const data = await res.json();
+        document.getElementById("ip").innerText = data.ip || "未知";
+
+        // 简单代理推测：如果 IP 是常见云服务段
+        const proxyIndicators = ["104.", "172.", "185.", "198.", "199.", "45.", "139.", "140."];
+        const isProxy = proxyIndicators.some(prefix => data.ip.startsWith(prefix));
+        document.getElementById("proxy").innerText = isProxy ? "可能使用代理/VPN" : "未检测到代理";
+      } catch (e) {
+        document.getElementById("ip").innerText = "获取失败";
+        document.getElementById("proxy").innerText = "检测失败";
+      }
+    }
+
+    getInternetSpeed();
+    getIPInfo();
+    setInterval(getInternetSpeed, 5000);
+  </script>
+</body>
+</html>
